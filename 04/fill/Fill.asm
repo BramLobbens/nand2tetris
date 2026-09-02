@@ -29,7 +29,6 @@
     0;JMP // If a key is pressed, jump to WRITE
 
 (CLEAR)
-
     @pos
     A=M // Load the address of the current pixel into A
     M=0 // Clear the screen (write "white" to the pixel) to the address of A
@@ -41,7 +40,6 @@
     0;JMP
 
 (WRITE)
-
     @pos
     A=M // Load the address of the current pixel into A
     M=-1 // Blacken the screen (write "black" to the pixel) to the address of A
