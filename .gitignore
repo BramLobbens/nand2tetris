@@ -1,0 +1,15 @@
+// ignore output, test, compare files
+*.cmp
+*.out
+*.tst
+
+// binary files
+*.hack
+
+// other
+*.pdf
+
+// ignore stubs to be implemented and /demo
+to_be_implemented/
+13/
+demo/
