@@ -30,6 +30,22 @@ CHIP Memory {
     // Put your code here:
 
     ///
+    /// Determine which memory component should be loaded based on the address.
+    ///
+    DMux4Way(
+        in=load,
+        sel=address[13..14],
+        a=ramLoad00,
+        b=ramLoad01,
+        c=screenLoad,
+        d=keyboardLoad
+    );
+
+    // Unlike Mux where a, b, c, d are inputs to be selected (where inputs can be consumed more than once),
+    // DMux a, b, c, d are outputs based on the selector and can only produce 1. So we add an OR gate to combine the RAM load signals.
+    Or(a=ramLoad00, b=ramLoad01, out=ramLoad);
+
+    ///
     /// MEMORY MAP
     ///
 
@@ -38,6 +54,7 @@ CHIP Memory {
      * 0      = 00000000000000
      * 16383  = 11111111111111
      */
+     // Note: we can wire 'in' directly to all memory components since they will only load based on their respective load signals.
     RAM16K(in=in, load=ramLoad, address=address[0..13], out=ramOut);
 
     /*
@@ -52,20 +69,23 @@ CHIP Memory {
      * 24576  = 11000000000000
      * 24583  = 11000000000111
      */
-    Keyboard(in=in, load=keyboardLoad, address=address[13], out=keyboardOut);
+    //Keyboard(in=in, load=keyboardLoad, address=address[13], out=keyboardOut);
+    // Keyboard is read-only, so we only need to connect its output.
+    Keyboard(out=keyboardOut);
 
     ///
-    /// Memory Output
+    /// Determine which memory component's output should be routed to the final output.
     ///
 
     // Based on the address ranges the 14th and 15th bit (address[13] and address[14]) determine
     // whether to access RAM or Screen memory or the keyboard.
+    // Note: address[13..14] is used as the selector for Mux4Way16.
     Mux4Way16(
         a=ramOut, // 00
         b=ramOut, // 01
         c=screenOut, // 10
         d=keyboardOut, // 11
-        sel=address[14..13], // selector for Mux4Way16 expects a 2-bit input
+        sel=address[13..14], // selector for Mux4Way16 expects a 2-bit input
         out=out
     );
 }
