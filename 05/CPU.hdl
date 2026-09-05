@@ -46,15 +46,36 @@ CHIP CPU {
     ///
     // A-instruction: instruction[15] == 0
     Not(in=instruction[15], out=isAInstruction);
+    And(a=instruction[15], b=true, out=isCInstruction);
 
-    // to-do: to check whether alu output needs to be stored in A, instead of the instruction.
+    // Determine whether the instruction is an A-instruction
     Mux16(a=aluOutput, b=instruction, sel=isAInstruction, out=aRegisterInput);
+
+    // In case of a C-instruction:
+    // Check the dest bits of the instruction to determine whether to load the A, D, or M.
+    // d1, d2, d3 are the destination bits of the instruction.
+    And(a=isCInstruction, b=instruction[5], out=destA);
+    And(a=isCInstruction, b=instruction[4], out=destD);
+    And(a=isCInstruction, b=instruction[3], out=destM);
+
+    // Determine we have to load A; whether the instruction is an A-instruction or a C-instruction with a dest to A.
+    Or(a=isAInstruction, b=destA, out=loadA);
+
     // Register A
-    ARegister(in=aRegisterInput, load=isAInstruction, out=aRegisterOut);
+    ARegister(
+        in=aRegisterInput,
+        load=loadA,
+        out=aRegisterOut,
+        out[0..14]=addressM
+    );
 
     // Determine A/M input for ALU
     // the a-bit of the instruction determines whether to use A or M as the ALU input.
     Mux16(a=aRegisterOut, b=inM, sel=instruction[12], out=maOut);
+
+    // Register D
+    // we will need to check if the first Mux determines whether we have an A- or C-instruction the instruction's dest bits to determine whether to load the D register.
+    DRegister(in=aluOut, load=, out=dRegisterOut);
 
     // ALU
     // pass the comp fields of the instruction to the ALU to determine the operation to perform.
@@ -80,10 +101,8 @@ CHIP CPU {
         no=instruction[6] // c6
         );
 
-    // // PC
-    // PC(in=, load=, inc=, reset=reset, out=pcOut);
-
-
-    // Register D
-    //DRegister(in=, load=, out=dOut);
+    // PC
+    // to-do: determine load signal
+    // need to look at the j-bits of a subsequent(!) c-instruction
+    PC(in=aRegisterOut, load=, inc=inc, reset=reset, out=pcOut);
 }
