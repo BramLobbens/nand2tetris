@@ -63,4 +63,14 @@ internal static class Code
     public static string Dest(string mnemonic) => DestTable[mnemonic];
 
     public static string Jump(string mnemonic) => JumpTable[mnemonic];
+
+    public static string ToBinary(int value)
+    {
+        if (value < 0 || value > 32767)
+        {
+            throw new ArgumentOutOfRangeException(nameof(value), "Value must be between 0 and 32767.");
+        }
+
+        return Convert.ToString(value, 2).PadLeft(15, '0');
+    }
 }

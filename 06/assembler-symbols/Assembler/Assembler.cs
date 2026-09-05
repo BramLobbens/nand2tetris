@@ -37,6 +37,8 @@ int ParseResultHandler(ParseResult result)
 void ParseAssemblyFile(FileInfo inputFile, FileInfo? outputFile)
 {
     var parser = new Parser(File.ReadLines(inputFile.FullName));
+    var symbolTable = SymbolTable.Instance;
+
     var outputFilePath = outputFile is null || string.IsNullOrWhiteSpace(outputFile.FullName)
         ? Path.ChangeExtension(inputFile.FullName, Constants.FileExtensions.HACK)
         : Path.ChangeExtension(outputFile.FullName, Constants.FileExtensions.HACK);
@@ -45,6 +47,27 @@ void ParseAssemblyFile(FileInfo inputFile, FileInfo? outputFile)
     var sb = new StringBuilder();
     try
     {
+        int romAddress = 0;
+        // FIRST PASS: Handle L_COMMANDs and populate the symbol table with label addresses.
+        while (parser.HasMoreCommands())
+        {
+            parser.Advance();
+            if (parser.CommandType() == Type.L_COMMAND)
+            {
+                // Store the address of the next instruction (ROM address) in the symbol table for the label.
+                symbolTable.AddEntry(parser.Symbol(), romAddress);
+            }
+            else
+            {
+                // Increment the ROM address for each command that produces binary output (A_COMMAND and C_COMMAND).
+                romAddress++;
+            }
+        }
+
+        parser.Reset();
+
+
+        // SECOND PASS: Handle A_COMMANDs and C_COMMANDs, converting them to binary and writing to the output file.
         while (parser.HasMoreCommands())
         {
             parser.Advance();
@@ -52,6 +75,37 @@ void ParseAssemblyFile(FileInfo inputFile, FileInfo? outputFile)
 
             if (parser.CommandType() == Type.A_COMMAND)
             {
+                // Resolve the symbol to an address.
+                // e.g. @LOOP -> resolve from symbol table
+                // e.g. @sum -> if new symbol, assign next available RAM address (starting from 16) and add to symbol table
+                // e.g. @100 -> use the numeric value directly
+                var entry = parsedCommands.First(kvp => kvp.Key == "symbol");
+                var symbol = entry.Value;
+                var isNumeric = int.TryParse(symbol, out var constant);
+                var isPresent = symbolTable.Contains(symbol);
+
+                if (isNumeric)
+                {
+                    // If the symbol is numeric, we can directly use it as the address.
+                    parsedCommands.Remove(entry);
+                    parsedCommands.Add(new KeyValuePair<string, string>("constant", constant.ToString()));
+                }
+
+                else if (!isPresent)
+                {
+                    // If the symbol is not present in the symbol table, we need to add it with the next available RAM address.
+                    var nextAvailableAddress = symbolTable.GetNextAvailableAddress();
+                    symbolTable.AddEntry(symbol, nextAvailableAddress);
+                    parsedCommands.Remove(entry);
+                    parsedCommands.Add(new KeyValuePair<string, string>("address", nextAvailableAddress.ToString()));
+                }
+                else
+                {
+                    var address = symbolTable.GetAddress(symbol);
+                    parsedCommands.Remove(entry);
+                    parsedCommands.Add(new KeyValuePair<string, string>("address", address.ToString()));
+                }
+
                 sb.Append(Constants.HackLexemes.A_MSB);
             }
             else if (parser.CommandType() == Type.C_COMMAND)
@@ -59,7 +113,16 @@ void ParseAssemblyFile(FileInfo inputFile, FileInfo? outputFile)
                 sb.Append(Constants.HackLexemes.C_MSB);
             }
 
-            var binaryText = ConvertCommandsToBinary(parsedCommands, sb);
+            if (parser.CommandType() == Type.L_COMMAND)
+            {
+                // L_COMMANDs are labels and do not produce binary output, so we skip writing them to the output file.
+                continue;
+            }
+
+            // Increment the ROM address for each command that produces binary output (A_COMMAND and C_COMMAND).
+            romAddress++;
+
+            var binaryText = ConvertCommandsToBinary(symbolTable, parsedCommands, sb);
             writer.Value.WriteLine($"{binaryText}");
             sb.Clear();
         }
@@ -73,15 +136,15 @@ void ParseAssemblyFile(FileInfo inputFile, FileInfo? outputFile)
     }
 }
 
-IReadOnlyCollection<KeyValuePair<string, string>> GetCommands(Parser parser)
+ICollection<KeyValuePair<string, string>> GetCommands(Parser parser)
 {
     var parsedResults = parser.CommandType() switch
         {
-            Type.A_COMMAND or Type.L_COMMAND => new[]
+            Type.A_COMMAND or Type.L_COMMAND => new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string, string>("symbol", parser.Symbol())
             },
-            Type.C_COMMAND => new[]
+            Type.C_COMMAND => new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string, string>("dest", parser.Dest()),
                 new KeyValuePair<string, string>("comp", parser.Comp()),
@@ -92,7 +155,7 @@ IReadOnlyCollection<KeyValuePair<string, string>> GetCommands(Parser parser)
     return parsedResults;
 }
 
-string ConvertCommandsToBinary(IReadOnlyCollection<KeyValuePair<string, string>> parsedCommands, StringBuilder sb)
+string ConvertCommandsToBinary(ISymbolTable symbolTable, ICollection<KeyValuePair<string, string>> parsedCommands, StringBuilder sb)
 {
     // binary: comp-dest-jump
     var binaryCompOrder = new List<string> { "comp", "dest", "jump" };
@@ -100,7 +163,8 @@ string ConvertCommandsToBinary(IReadOnlyCollection<KeyValuePair<string, string>>
     {
         var binaryTextValue = kvp switch
         {
-            { Key: "symbol", Value: var symbol } => symbol, //throw new NotImplementedException(),
+            { Key: "constant", Value: var constant } => Code.ToBinary(int.Parse(constant)),
+            { Key: "address", Value: var address } => Code.ToBinary(int.Parse(address)),
             { Key: "dest", Value: var dest } => Code.Dest(dest),
             { Key: "comp", Value: var comp } => Code.Comp(comp),
             { Key: "jump", Value: var jump } => Code.Jump(jump),

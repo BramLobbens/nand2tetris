@@ -3,20 +3,27 @@ internal sealed class Parser : IParser
 {
     private readonly IEnumerable<string> _lines;
 
-    private readonly IEnumerator<string> _lineEnumerator;
+    private IEnumerator<string> _lineEnumerator;
 
     private string _currentLine = string.Empty;
 
     internal Parser(IEnumerable<string> lines)
     {
         _lines = lines;
-        _lineEnumerator = _lines.GetEnumerator();
+        _lineEnumerator = GetLineEnumerator();
     }
+
+    public void Reset()
+    {
+        _lineEnumerator = GetLineEnumerator();
+        _currentLine = string.Empty;
+    }
+
     public void Advance()
     {
         // Our HasMoreCommands method already calls MoveNext, so we don't need to call it again here.
         _currentLine = ReadCurrentLine();
-        if (string.IsNullOrWhiteSpace(_currentLine) || _currentLine.StartsWith(Constants.AsmLexemes.COMMENT_PREFIX))
+        while (string.IsNullOrWhiteSpace(_currentLine) || _currentLine.StartsWith(Constants.AsmLexemes.COMMENT_PREFIX))
         {
             // Skip empty lines and comments
             _lineEnumerator.MoveNext();
@@ -58,14 +65,14 @@ internal sealed class Parser : IParser
             if (compPart.Contains(Constants.AsmLexemes.C_COMMAND_JUMP_SEPARATOR))
             {
                 var compAndJumpParts = compPart.Split(Constants.AsmLexemes.C_COMMAND_JUMP_SEPARATOR, 2);
-                return compAndJumpParts[0].Trim();
+                return NormaliseParsedLine(compAndJumpParts[0]);
             }
-            return compPart;
+            return NormaliseParsedLine(compPart);
         }
         else if (line.Contains(Constants.AsmLexemes.C_COMMAND_JUMP_SEPARATOR))
         {
             var parts = line.Split(Constants.AsmLexemes.C_COMMAND_JUMP_SEPARATOR, 2);
-            return parts[0].Trim();
+            return NormaliseParsedLine(parts[0]);
         }
 
         // Comp is mandatory for C_COMMAND, so if we reach here, it's an error.
@@ -78,7 +85,8 @@ internal sealed class Parser : IParser
         if (line.Contains(Constants.AsmLexemes.C_COMMAND_DEST_SEPARATOR))
         {
             var parts = line.Split(Constants.AsmLexemes.C_COMMAND_DEST_SEPARATOR, 2);
-            return parts[0].Trim();
+            var destPart = parts[0].Trim();
+            return NormaliseParsedLine(destPart);
         }
         return string.Empty;
     }
@@ -96,7 +104,8 @@ internal sealed class Parser : IParser
         if (line.Contains(Constants.AsmLexemes.C_COMMAND_JUMP_SEPARATOR))
         {
             var parts = line.Split(Constants.AsmLexemes.C_COMMAND_JUMP_SEPARATOR, 2);
-            return parts[1].Trim();
+            var jumpPart = parts[1].Trim();
+            return NormaliseParsedLine(jumpPart);
         }
         return string.Empty;
     }
@@ -105,13 +114,15 @@ internal sealed class Parser : IParser
     {
         // The book specifies the Symbol method is called without arguments,
         // so we check for the command type again here to ensure the correct behavior.
-        return CommandType() switch
+        var symbolLine = CommandType() switch
         {
             Type.A_COMMAND => _currentLine.Substring(Constants.AsmLexemes.A_COMMAND_PREFIX.Length),
             Type.L_COMMAND => _currentLine.Substring(Constants.AsmLexemes.L_COMMAND_PREFIX.Length,
                 _currentLine.Length - Constants.AsmLexemes.L_COMMAND_PREFIX.Length - Constants.AsmLexemes.L_COMMAND_SUFFIX.Length),
             _ => throw new Assembler.ParseException($"Symbol is not applicable for command type: {CommandType()}")
         };
+
+        return NormaliseParsedLine(symbolLine);
     }
 
     private string ReadCurrentLine()
@@ -121,5 +132,22 @@ internal sealed class Parser : IParser
             return _lineEnumerator.Current.Trim();
         }
         return string.Empty;
+    }
+
+    private IEnumerator<string> GetLineEnumerator()
+    {
+        if (_lineEnumerator != null)
+        {
+            _lineEnumerator.Dispose();
+        }
+        return _lines.GetEnumerator();
+    }
+
+    private string NormaliseParsedLine(string line)
+    {
+        // Normalize the symbol by trimming whitespace and splitting on
+        // spaces or comments to get the first part.
+        var normalizedSymbol = line.Trim().Split(' ')[0]?.Split(Constants.AsmLexemes.COMMENT_PREFIX)[0]?.Trim() ?? string.Empty;
+        return normalizedSymbol;
     }
 }
