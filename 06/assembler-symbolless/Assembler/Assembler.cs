@@ -1,5 +1,4 @@
 ﻿using System.CommandLine;
-
 using Assembler.Modules;
 
 var fileArgument = new Argument<FileInfo>(name: "file");
@@ -20,14 +19,31 @@ parseResult.Invoke();
 int ParseResultHandler(ParseResult result)
 {
     var inputFile = result.GetValue(fileArgument);
-    var output = result.GetValue(outputFileOption);
+    var outputFileName = result.GetValue(outputFileOption);
 
-    ParseAssemblyFile(inputFile!); // Library will handle missing file argument, so we can safely use the null-forgiving operator here.
+    var isEligibleInput = inputFile is not null && inputFile.Exists && inputFile.Extension.Equals(".asm", StringComparison.OrdinalIgnoreCase);
+    if (!isEligibleInput)
+    {
+        Console.WriteLine("Invalid input file. Please provide a valid .asm file.");
+        return 1;
+    }
+
+    ParseAssemblyFile(inputFile!, outputFileName is null ? null : new FileInfo(outputFileName)); // Library will handle missing file argument, so we can safely use the null-forgiving operator here.
     return 0;
 }
 
-void ParseAssemblyFile(FileInfo fileInfo)
+void ParseAssemblyFile(FileInfo inputFile, FileInfo? outputFile)
 {
-    using var reader = new StreamReader(fileInfo.FullName);
-    var parser = new Parser(reader);
+    var parser = new Parser(File.ReadLines(inputFile.FullName));
+    var outputFilePath = outputFile is null || string.IsNullOrWhiteSpace(outputFile.FullName)
+        ? Path.ChangeExtension(inputFile.FullName, ".hack")
+        : Path.ChangeExtension(outputFile.FullName, ".hack");
+
+    using var writer = new StreamWriter(outputFilePath);
+    while (parser.HasMoreCommands())
+    {
+        parser.Advance();
+        //...
+        writer.WriteLine($"{parser.CurrentLine}");
+    }
 }
