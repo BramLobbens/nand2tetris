@@ -41,15 +41,49 @@ CHIP CPU {
     PARTS:
     // Put your code here:
 
-    // PC
-    PC(in=, load=, inc=, reset=reset, out=pcOut);
+    ///
+    /// Decode for A-, or C-instruction
+    ///
+    // A-instruction: instruction[15] == 0
+    Not(in=instruction[15], out=isAInstruction);
+
+    // to-do: to check whether alu output needs to be stored in A, instead of the instruction.
+    Mux16(a=aluOutput, b=instruction, sel=isAInstruction, out=aRegisterInput);
+    // Register A
+    ARegister(in=aRegisterInput, load=isAInstruction, out=aRegisterOut);
+
+    // Determine A/M input for ALU
+    // the a-bit of the instruction determines whether to use A or M as the ALU input.
+    Mux16(a=aRegisterOut, b=inM, sel=instruction[12], out=maOut);
 
     // ALU
-    ALU(out=, zr=, ng=, x=, y=, zx=, nx=, zy=, ny=, f=, no=);
+    // pass the comp fields of the instruction to the ALU to determine the operation to perform.
+    // bits [6..11] of the instruction are the comp bits.
+    ALU(
+        // OUT
+        out=aluOut,
+        zr=zr,
+        ng=ng,
 
-    // Register A
-    Register(in=, load=, out=aOut);
+        //DATA
+        // These are the ALU data inputs, which are either the D register or the A/M input.
+        x=dRegisterOut,
+        y=maOut,
+
+        // CONTROL
+        // These are the ALU control bits, which are determined by the instruction's comp field.
+        zx=instruction[11], // c1
+        nx=instruction[10], // c2
+        zy=instruction[9], // c3
+        ny=instruction[8], // c4
+        f=instruction[7], // c5
+        no=instruction[6] // c6
+        );
+
+    // // PC
+    // PC(in=, load=, inc=, reset=reset, out=pcOut);
+
 
     // Register D
-    Register(in=, load=, out=dOut);
+    //DRegister(in=, load=, out=dOut);
 }
