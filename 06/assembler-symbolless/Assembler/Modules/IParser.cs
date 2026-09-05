@@ -2,7 +2,7 @@ interface IParser
 {
     bool HasMoreCommands();
     void Advance();
-    CommandType CommandType();
+    Type CommandType();
     string Symbol();
     string Dest();
     string Comp();
