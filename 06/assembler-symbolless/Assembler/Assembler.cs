@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
-using System.Globalization;
+using System.Text;
+using Assembler;
 using Assembler.Modules;
 
 var fileArgument = new Argument<FileInfo>(name: "file");
@@ -22,10 +23,10 @@ int ParseResultHandler(ParseResult result)
     var inputFile = result.GetValue(fileArgument);
     var outputFileName = result.GetValue(outputFileOption);
 
-    var isEligibleInput = inputFile is not null && inputFile.Exists && inputFile.Extension.Equals(Constants.ASM, StringComparison.OrdinalIgnoreCase);
+    var isEligibleInput = inputFile is not null && inputFile.Exists && inputFile.Extension.Equals(Constants.FileExtensions.ASM, StringComparison.OrdinalIgnoreCase);
     if (!isEligibleInput)
     {
-        Console.WriteLine($"Invalid input file. Please provide a valid {Constants.ASM} file.");
+        Console.WriteLine($"Invalid input file. Please provide a valid {Constants.FileExtensions.ASM} file.");
         return 1;
     }
 
@@ -37,38 +38,29 @@ void ParseAssemblyFile(FileInfo inputFile, FileInfo? outputFile)
 {
     var parser = new Parser(File.ReadLines(inputFile.FullName));
     var outputFilePath = outputFile is null || string.IsNullOrWhiteSpace(outputFile.FullName)
-        ? Path.ChangeExtension(inputFile.FullName, Constants.HACK)
-        : Path.ChangeExtension(outputFile.FullName, Constants.HACK);
+        ? Path.ChangeExtension(inputFile.FullName, Constants.FileExtensions.HACK)
+        : Path.ChangeExtension(outputFile.FullName, Constants.FileExtensions.HACK);
 
     var writer = new Lazy<StreamWriter>(() => new StreamWriter(outputFilePath));
+    var sb = new System.Text.StringBuilder();
     try
     {
         while (parser.HasMoreCommands())
         {
             parser.Advance();
+            var parsedCommands = GetCommands(parser);
 
-            var parsedCommands = parser.CommandType() switch
+            if (parser.CommandType() == Type.A_COMMAND)
             {
-                Type.A_COMMAND or Type.L_COMMAND => new[]
-                {
-                    new KeyValuePair<string, string>("symbol", parser.Symbol())
-                },
-                Type.C_COMMAND => new[]
-                {
-                    new KeyValuePair<string, string>("dest", parser.Dest()),
-                    new KeyValuePair<string, string>("comp", parser.Comp()),
-                    new KeyValuePair<string, string>("jump", parser.Jump())
-                },
-                _ => throw new InvalidOperationException($"Unsupported command type: {parser.CommandType()}")
-            };
-
-            // var parsedLine = parser.CurrentLine;
-            // var isValidLine = int.TryParse(parsedLine, NumberStyles.BinaryNumber, CultureInfo.InvariantCulture, out _);
-            // if (!isValidLine)
-            // {
-            //     throw new Assembler.ParseException($"Invalid line format: {parsedLine}");
-            // }
-            writer.Value.WriteLine($"{parsedCommands.Aggregate(string.Empty, (acc, kvp) => $"{acc}{kvp.Key}: {kvp.Value}, ")}");
+                sb.Append(Constants.HackLexemes.A_MSB);
+            }
+            else if (parser.CommandType() == Type.C_COMMAND)
+            {
+                sb.Append(Constants.HackLexemes.C_MSB);
+            }
+            var binaryText = ConvertCommandsToBinary(parsedCommands, sb);
+            writer.Value.WriteLine($"{binaryText}");
+            sb.Clear();
         }
     }
     finally
@@ -78,4 +70,45 @@ void ParseAssemblyFile(FileInfo inputFile, FileInfo? outputFile)
             writer.Value.Dispose();
         }
     }
+}
+
+IReadOnlyCollection<KeyValuePair<string, string>> GetCommands(Parser parser)
+{
+    var parsedResults = parser.CommandType() switch
+        {
+            Type.A_COMMAND or Type.L_COMMAND => new[]
+            {
+                new KeyValuePair<string, string>("symbol", parser.Symbol())
+            },
+            Type.C_COMMAND => new[]
+            {
+                new KeyValuePair<string, string>("dest", parser.Dest()),
+                new KeyValuePair<string, string>("comp", parser.Comp()),
+                new KeyValuePair<string, string>("jump", parser.Jump())
+            },
+            _ => throw new InvalidOperationException($"Unsupported command type: {parser.CommandType()}")
+        };
+    return parsedResults;
+}
+
+string ConvertCommandsToBinary(IReadOnlyCollection<KeyValuePair<string, string>> parsedCommands, StringBuilder sb)
+{
+    // binary: comp-dest-jump
+    var binaryCompOrder = new List<string> { "comp", "dest", "jump" };
+    foreach (var kvp in parsedCommands.OrderBy(k => binaryCompOrder.IndexOf(k.Key)))
+    {
+        var binaryTextValue = kvp switch
+        {
+            { Key: "symbol", Value: var symbol } => symbol, //throw new NotImplementedException(),
+            { Key: "dest", Value: var dest } => Code.Dest(dest),
+            { Key: "comp", Value: var comp } => Code.Comp(comp),
+            { Key: "jump", Value: var jump } => Code.Jump(jump),
+
+            _ => throw new InvalidOperationException($"Unexpected key-value pair: {kvp.Key}={kvp.Value}")
+        };
+
+        sb.Append(binaryTextValue);
+    }
+
+    return sb.ToString().TrimEnd(',', ' ');
 }
