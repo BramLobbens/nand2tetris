@@ -42,7 +42,7 @@ void ParseAssemblyFile(FileInfo inputFile, FileInfo? outputFile)
         : Path.ChangeExtension(outputFile.FullName, Constants.FileExtensions.HACK);
 
     var writer = new Lazy<StreamWriter>(() => new StreamWriter(outputFilePath));
-    var sb = new System.Text.StringBuilder();
+    var sb = new StringBuilder();
     try
     {
         while (parser.HasMoreCommands())
@@ -58,6 +58,7 @@ void ParseAssemblyFile(FileInfo inputFile, FileInfo? outputFile)
             {
                 sb.Append(Constants.HackLexemes.C_MSB);
             }
+
             var binaryText = ConvertCommandsToBinary(parsedCommands, sb);
             writer.Value.WriteLine($"{binaryText}");
             sb.Clear();
