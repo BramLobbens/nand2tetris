@@ -47,7 +47,7 @@ void ParseAssemblyFile(FileInfo inputFile, FileInfo? outputFile)
     var sb = new StringBuilder();
     try
     {
-        BuildSymbolTable(parser, symbolTable);
+        PopulateSymbolTable(parser, symbolTable);
         parser.Reset();
 
         // SECOND PASS: Handle A_COMMANDs and C_COMMANDs, converting them to binary and writing to the output file.
@@ -56,27 +56,19 @@ void ParseAssemblyFile(FileInfo inputFile, FileInfo? outputFile)
             parser.Advance();
             var (type, parsedCommands) = GetParsedCommands(parser);
 
-            switch (type)
+            if (type == Type.L_COMMAND)
             {
-                case Type.A_COMMAND:
-                    // Update our parsedCommands to replace the symbol with its corresponding address or constant value.
-                    ResolveSymbolValues(symbolTable, parsedCommands);
-                    sb.Append(Constants.HackLexemes.A_MSB);
-                    break;
-
-                case Type.C_COMMAND:
-                    sb.Append(Constants.HackLexemes.C_MSB);
-                    break;
-
-                case Type.L_COMMAND:
-                    // L_COMMANDs are labels and do not produce binary output, so we skip writing them to the output file.
-                    continue;
-
-                default:
-                    throw new InvalidOperationException($"Unsupported command type: {type}");
+                // L_COMMANDs are labels and do not produce binary output, so we skip writing them to the output file.
+                continue;
             }
 
-            var binaryText = ConvertCommandsToBinary(symbolTable, parsedCommands, sb);
+            if (type == Type.A_COMMAND)
+            {
+                // Update our parsedCommands to replace the symbol with its corresponding address or constant value.
+                ResolveSymbolValues(symbolTable, parsedCommands);
+            }
+
+            var binaryText = ConvertCommandsToBinary(parsedCommands, sb);
             writer.Value.WriteLine($"{binaryText}");
             sb.Clear();
         }
@@ -94,7 +86,7 @@ void ParseAssemblyFile(FileInfo inputFile, FileInfo? outputFile)
 /// Builds the symbol table by performing a first pass over the assembly code to handle L_COMMANDs (i.e., (Xxx) labels)
 /// and populate the symbol table with label addresses at the corresponding ROM addresses.
 /// </summary>
-void BuildSymbolTable(Parser parser, ISymbolTable symbolTable)
+void PopulateSymbolTable(Parser parser, ISymbolTable symbolTable)
 {
     int romAddress = 0;
     // FIRST PASS: Handle L_COMMANDs and populate the symbol table with label addresses.
@@ -126,28 +118,26 @@ void ResolveSymbolValues(ISymbolTable symbolTable, ICollection<KeyValuePair<stri
         var entry = parsedCommands.First(kvp => kvp.Key == "symbol");
         var symbol = entry.Value;
         var isNumeric = int.TryParse(symbol, out var constant);
-        var isPresent = symbolTable.Contains(symbol);
+        var hasSymbolEntry = symbolTable.Contains(symbol);
 
-        if (isNumeric)
+        if (isNumeric) // If the symbol is numeric, we can directly use it as the address.
         {
-            // If the symbol is numeric, we can directly use it as the address.
-            parsedCommands.Remove(entry);
             parsedCommands.Add(new KeyValuePair<string, string>("constant", constant.ToString()));
         }
-        else if (!isPresent)
+        else if (!hasSymbolEntry)  // If the symbol is not present in the symbol table, we need to add it with the next available RAM address.
         {
-            // If the symbol is not present in the symbol table, we need to add it with the next available RAM address.
             var nextAvailableAddress = symbolTable.GetNextAvailableAddress();
             symbolTable.AddEntry(symbol, nextAvailableAddress);
-            parsedCommands.Remove(entry);
             parsedCommands.Add(new KeyValuePair<string, string>("address", nextAvailableAddress.ToString()));
         }
-        else
+        else // If the symbol is already present in the symbol table, we can retrieve its address and use it.
         {
             var address = symbolTable.GetAddress(symbol);
-            parsedCommands.Remove(entry);
             parsedCommands.Add(new KeyValuePair<string, string>("address", address.ToString()));
         }
+
+        // Remove the original "symbol" entry from the parsed commands as it has been resolved to either a constant or an address.
+        parsedCommands.Remove(entry);
 }
 
 /// <summary>
@@ -177,7 +167,7 @@ void ResolveSymbolValues(ISymbolTable symbolTable, ICollection<KeyValuePair<stri
     return (commandType, parsedResults);
 }
 
-string ConvertCommandsToBinary(ISymbolTable symbolTable, ICollection<KeyValuePair<string, string>> parsedCommands, StringBuilder sb)
+string ConvertCommandsToBinary(ICollection<KeyValuePair<string, string>> parsedCommands, StringBuilder sb)
 {
     // binary: comp-dest-jump
     var binaryCompOrder = new List<string> { "comp", "dest", "jump" };
@@ -185,11 +175,11 @@ string ConvertCommandsToBinary(ISymbolTable symbolTable, ICollection<KeyValuePai
     {
         var binaryTextValue = kvp switch
         {
-            { Key: "constant", Value: var constant } => Code.ToBinary(int.Parse(constant)),
-            { Key: "address", Value: var address } => Code.ToBinary(int.Parse(address)),
+            { Key: "constant", Value: var constant } => $"0{Code.ToBinary(int.Parse(constant))}",
+            { Key: "address", Value: var address } => $"0{Code.ToBinary(int.Parse(address))}",
 
+            { Key: "comp", Value: var comp } => $"111{Code.Comp(comp)}",
             { Key: "dest", Value: var dest } => Code.Dest(dest),
-            { Key: "comp", Value: var comp } => Code.Comp(comp),
             { Key: "jump", Value: var jump } => Code.Jump(jump),
 
             _ => throw new InvalidOperationException($"Unexpected key-value pair: {kvp.Key}={kvp.Value}")

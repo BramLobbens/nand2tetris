@@ -66,11 +66,11 @@ internal static class Code
 
     public static string ToBinary(int value)
     {
-        if (value < 0 || value > 32767)
+        if (value < 0 || value > Constants.Hack.MAX_ADDRESS)
         {
-            throw new ArgumentOutOfRangeException(nameof(value), "Value must be between 0 and 32767.");
+            throw new ArgumentOutOfRangeException(nameof(value), $"Value must be between 0 and {Constants.Hack.MAX_ADDRESS}.");
         }
 
-        return Convert.ToString(value, 2).PadLeft(15, '0');
+        return Convert.ToString(value, 2).PadLeft(Constants.Hack.WORD_SIZE - 1, '0');
     }
 }

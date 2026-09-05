@@ -18,9 +18,9 @@ internal static class Constants
         public const string COMMENT_PREFIX = "//";
     }
 
-    public static class HackLexemes
+    public static class Hack
     {
-        public const char A_MSB = '0';
-        public const string C_MSB = "111";
+        public const int WORD_SIZE = 16;
+        public const int MAX_ADDRESS = 32767; // 2^15 - 1
     }
 }
