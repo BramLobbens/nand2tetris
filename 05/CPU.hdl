@@ -49,7 +49,7 @@ CHIP CPU {
     And(a=instruction[15], b=true, out=isCInstruction);
 
     // Determine whether the instruction is an A-instruction
-    Mux16(a=aluOutput, b=instruction, sel=isAInstruction, out=aRegisterInput);
+    Mux16(a=aluOut, b=instruction, sel=isAInstruction, out=aRegisterInput);
 
     // In case of a C-instruction:
     // Check the dest bits of the instruction to determine whether to load the A, D, or M.
@@ -57,6 +57,8 @@ CHIP CPU {
     And(a=isCInstruction, b=instruction[5], out=destA);
     And(a=isCInstruction, b=instruction[4], out=destD);
     And(a=isCInstruction, b=instruction[3], out=destM);
+
+    And(a=destM, b=true, out=writeM); // writeM is true if the instruction is a C-instruction and the dest bit for M is set.
 
     // Determine we have to load A; whether the instruction is an A-instruction or a C-instruction with a dest to A.
     Or(a=isAInstruction, b=destA, out=loadA);
@@ -74,15 +76,15 @@ CHIP CPU {
     Mux16(a=aRegisterOut, b=inM, sel=instruction[12], out=maOut);
 
     // Register D
-    // we will need to check if the first Mux determines whether we have an A- or C-instruction the instruction's dest bits to determine whether to load the D register.
-    DRegister(in=aluOut, load=, out=dRegisterOut);
+    And(a=destD, b=isCInstruction, out=loadD);
+    DRegister(in=aluOut, load=loadD, out=dRegisterOut);
 
     // ALU
     // pass the comp fields of the instruction to the ALU to determine the operation to perform.
     // bits [6..11] of the instruction are the comp bits.
     ALU(
         // OUT
-        out=aluOut,
+        out=aluOut, // Note outM is also routed/wired back to internal inputs as well.
         zr=zr,
         ng=ng,
 
@@ -99,10 +101,69 @@ CHIP CPU {
         ny=instruction[8], // c4
         f=instruction[7], // c5
         no=instruction[6] // c6
-        );
+    );
+
+    // Check the jump bits of a C-instruction to determine whether to load the PC register.
+    // Note: after implementing a solution, I realise this can be simplified a lot.
+    DMux8Way(
+        in=isCInstruction,
+        sel=instruction[0..2], // j1, j2, j3
+        a=loadPC00, // 000 - no jump
+        b=loadPC01, // 001 - JGT
+        c=loadPC02, // 010 - JEQ
+        d=loadPC03, // 011 - JGE
+        e=loadPC04, // 100 - JLT
+        f=loadPC05, // 101 - JNE
+        g=loadPC06, // 110 - JLE
+        h=loadPC07 // 111 - JMP
+    );
+
+    And(a=zr, b=true, out=isZero);
+    And(a=ng, b=true, out=isNegative);
+    Or(a=zr, b=ng, out=zrng); // zr or ng
+    Not(in=zrng, out=isPositive); // not (zr or ng) = positive
+
+    // Let's check if the ALU output satisfies the jump condition.
+    And(a=loadPC01, b=isPositive, out=jumpGt); // JGT
+
+    And(a=loadPC02, b=isZero, out=jumpEq); // JEQ
+
+    And(a=loadPC03, b=isZero, out=pc03IsZero); // JGE
+    And(a=loadPC03, b=isPositive, out=pc03IsPositive); // JGE
+    Or(a=pc03IsZero, b=pc03IsPositive, out=jumpGe); // JGE
+
+    And(a=loadPC04, b=isNegative, out=jumpLt); // JLT
+
+    Not(in=isZero, out=isNotZero);
+    And(a=loadPC05, b=isNotZero, out=jumpNe); // JNE
+
+    And(a=loadPC06, b=isZero, out=pc06IsZero); // JLE
+    And(a=loadPC06, b=isNegative, out=pc06IsNegative); // JLE
+    Or(a=pc06IsZero, b=pc06IsNegative, out=jumpLe); // JLE
+
+    And(a=loadPC07, b=true, out=jumpJmp); // JMP - unconditional jump
 
     // PC
-    // to-do: determine load signal
-    // need to look at the j-bits of a subsequent(!) c-instruction
-    PC(in=aRegisterOut, load=, inc=inc, reset=reset, out=pcOut);
+    // PCOut is the address of the next instruction to execute.
+
+    // Determine whether to jump (and load the PC with the A register value) or not.
+    Or(a=jumpGt, b=jumpEq, out=or01);
+    Or(a=or01, b=jumpGe, out=or02);
+    Or(a=or02, b=jumpLt, out=or03);
+    Or(a=or03, b=jumpNe, out=or04);
+    Or(a=or04, b=jumpLe, out=or05);
+    Or(a=or05, b=jumpJmp, out=jumpOut);
+
+    // Determine whether to increment the PC or not.
+    // If A-instruction or C-instruction with no jump, increment PC.
+    Not(in=jumpOut, out=notJump);
+    Or(a=isAInstruction, b=notJump, out=shouldIncrementPC);
+
+    // If load, PC is set to aRegisterOut
+    // if increment, PC is set to PC + 1
+    // if reset, PC is set to 0
+    // else return PC
+    PC(in=aRegisterOut, load=jumpOut, inc=shouldIncrementPC, reset=reset, out[0..14]=pc);
+
+    And16(a=aluOut, b=true, out=outM); // Because we cannot set the ALU output directly to outM if other internal parts depend on it.
 }
