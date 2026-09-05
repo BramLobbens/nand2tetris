@@ -20,7 +20,7 @@ internal static class Constants
 
     public static class HackLexemes
     {
-        public const string A_MSB = "0";
+        public const char A_MSB = '0';
         public const string C_MSB = "111";
     }
 }
