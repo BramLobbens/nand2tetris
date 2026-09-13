@@ -1,6 +1,6 @@
 ﻿namespace VMtranslator.Modules;
 
-public class Parser
+public class Parser : IParser
 {
 
 }
