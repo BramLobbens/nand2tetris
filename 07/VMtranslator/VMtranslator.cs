@@ -1,5 +1,4 @@
 ﻿using System.CommandLine;
-using System.Text;
 using VMtranslator;
 
 var pathArgument = new Argument<string>("path");
@@ -31,7 +30,10 @@ int ParseResultHandler(ParseResult result)
     else if (Directory.Exists(path))
     {
         var directory = new DirectoryInfo(path);
-        // to-do parse VM files from directory
+        var inputFiles = directory.EnumerateFiles("*.*")
+            .Where(file => file.Extension.Equals(Constants.FileExtensions.VM, StringComparison.OrdinalIgnoreCase))
+            .ToList()
+            .AsReadOnly();
     }
     else
     {
