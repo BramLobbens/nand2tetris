@@ -60,7 +60,8 @@ void ParseVMFiles(ReadOnlyCollection<FileInfo> inputFiles, FileInfo? outputFile)
     var codeWriter = new CodeWriter();
     foreach (var file in inputFiles)
     {
-        var parser = new Parser();
+        // Instantiate a different parser for each separate VM file.
+        var parser = new Parser(File.ReadLines(file.FullName));
         ParseVMFile(parser, codeWriter, file, outputFile);
     }
 }

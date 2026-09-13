@@ -1,6 +1,6 @@
 ﻿namespace VMtranslator.Modules;
 
-public interface ICodeWriter
+internal interface ICodeWriter
 {
 
 }

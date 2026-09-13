@@ -1,6 +1,6 @@
 ﻿namespace VMtranslator.Modules;
 
-public class CodeWriter : ICodeWriter
+internal class CodeWriter : ICodeWriter
 {
 
 }
