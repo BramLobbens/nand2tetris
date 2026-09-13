@@ -5,12 +5,7 @@ using VMtranslator.Modules;
 
 var pathArgument = new Argument<string>("path");
 var outputFileOption = new Option<string>(name: "--output", aliases: ["-o"]);
-
-var rootCommand = new RootCommand("VMtranslator for Hack assembly language.")
-{
-    pathArgument,
-    outputFileOption
-};
+var rootCommand = new RootCommand("VMtranslator for Hack assembly language.") { pathArgument, outputFileOption };
 
 rootCommand.SetAction(ParseResultHandler);
 var parseResult = rootCommand.Parse(args);
@@ -33,7 +28,7 @@ int ParseResultHandler(ParseResult result)
             return 1;
         }
 
-        inputFiles = [ inputFile ];
+        inputFiles = [ inputFile! ];
     }
     else if (Directory.Exists(path))
     {
