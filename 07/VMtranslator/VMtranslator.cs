@@ -78,19 +78,22 @@ void ParseVMFile(IParser parser, ICodeWriter codeWriter, FileInfo inputFile, Fil
         parser.Advance();
 
         var commandType = parser.GetCommandType();
+
         switch (commandType)
         {
             case CommandType.C_ARITHMETIC:
-                // to-do
-                codeWriter.WriteArithmetic("test command");
+                // so the codewriter should receive the vm command to translate to asm
+                // seems like a weird approach... so we don't pass any stackpointer state to the codwriter ... hmm..
+                codeWriter.WriteArithmetic("add");
+                // after certain arithmetic commands sp should decrease
                 break;
             case CommandType.C_PUSH:
-                // to-do
-                codeWriter.WritePushPop(commandType, "test", 0);
-                break;
             case CommandType.C_POP:
-                // to-do
-                codeWriter.WritePushPop(commandType, "test", 1);
+                // in case of push we should set our sp to the first address in RAM for stack RAM[256]
+                // only if sp is still 0, otherwise we push to the location where sp is pointing to.
+                var segment = parser.GetArg1();
+                _ = int.TryParse(parser.GetArg2(), out var index);
+                codeWriter.WritePushPop(commandType, segment, index);
                 break;
             case CommandType.C_LABEL:
             case CommandType.C_GOTO:

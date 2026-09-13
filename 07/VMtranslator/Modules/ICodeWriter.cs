@@ -7,4 +7,6 @@ internal interface ICodeWriter
     public void WriteArithmetic(string command);
 
     public void WritePushPop(CommandType commandType, string segment, int index);
+
+    public void Close();
 }
