@@ -50,14 +50,19 @@ int ParseResultHandler(ParseResult result)
         return 1;
     }
 
-    ParseVMFiles(inputFiles.ToList().AsReadOnly(), outputFile);
+    ProcessInputFiles(inputFiles.ToList().AsReadOnly(), outputFile);
 
     return 0;
 }
 
-void ParseVMFiles(ReadOnlyCollection<FileInfo> inputFiles, FileInfo? outputFile)
+void ProcessInputFiles(ReadOnlyCollection<FileInfo> inputFiles, FileInfo? outputFile)
 {
-    var codeWriter = new CodeWriter();
+    var outputFilePath = outputFile is null || string.IsNullOrWhiteSpace(outputFile.FullName)
+        ? Path.ChangeExtension("out", Constants.FileExtensions.ASM)
+        : Path.ChangeExtension(outputFile.FullName, Constants.FileExtensions.ASM);
+
+    using var codeWriter = new CodeWriter(outputFilePath);
+
     foreach (var file in inputFiles)
     {
         // Instantiate a different parser for each separate VM file.
@@ -68,5 +73,33 @@ void ParseVMFiles(ReadOnlyCollection<FileInfo> inputFiles, FileInfo? outputFile)
 
 void ParseVMFile(IParser parser, ICodeWriter codeWriter, FileInfo inputFile, FileInfo? outputFile)
 {
-    throw new NotImplementedException();
+    while (parser.HasMoreCommands())
+    {
+        parser.Advance();
+
+        var commandType = parser.GetCommandType();
+        switch (commandType)
+        {
+            case CommandType.C_ARITHMETIC:
+                // to-do
+                codeWriter.WriteArithmetic("test command");
+                break;
+            case CommandType.C_PUSH:
+                // to-do
+                codeWriter.WritePushPop(commandType, "test", 0);
+                break;
+            case CommandType.C_POP:
+                // to-do
+                codeWriter.WritePushPop(commandType, "test", 1);
+                break;
+            case CommandType.C_LABEL:
+            case CommandType.C_GOTO:
+            case CommandType.C_IF:
+            case CommandType.C_FUNCTION:
+            case CommandType.C_RETURN:
+            case CommandType.C_CALL:
+            default:
+                break;
+        }
+    }
 }
