@@ -12,4 +12,11 @@ internal static class MemoryAccessAssembler
         @SP
         M=M+1           // Increment the stack pointer
     """;
+
+    internal static string PopStackToD() =>
+    """
+        @SP             // Point to the stack pointer
+        AM=M-1          // SP--; A=SP
+        D=M             // Store the topmost stack value in D
+    """;
 }

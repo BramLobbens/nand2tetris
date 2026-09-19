@@ -1,15 +1,16 @@
 namespace VMtranslator.Modules.CodeWriter.StackArithmetic;
 
 using System.Text;
+using VMtranslator.Modules.CodeWriter.MemoryAccess;
 
 internal static class ArithmeticCommandBuilder
 {
     internal static string Add()
     {
         var sb = new StringBuilder();
-        var popCode = ArithmeticAssembler.PopStackToD();
+        var popCode = MemoryAccessAssembler.PopStackToD();
         var decrementACode = ArithmeticAssembler.DecrementA();
-        var addDToMCode = ArithmeticAssembler.AddDToM();
+        var addDToMCode = ArithmeticAssembler.AddDToM(Register.M);
 
         sb.AppendLine(popCode);
         sb.AppendLine(decrementACode);
@@ -21,9 +22,9 @@ internal static class ArithmeticCommandBuilder
     internal static string Sub()
     {
         var sb = new StringBuilder();
-        var popCode = ArithmeticAssembler.PopStackToD();
+        var popCode = MemoryAccessAssembler.PopStackToD();
         var decrementACode = ArithmeticAssembler.DecrementA();
-        var subDFromMCode = ArithmeticAssembler.SubDFromM();
+        var subDFromMCode = ArithmeticAssembler.SubDFromM(Register.M);
 
         sb.AppendLine(popCode);
         sb.AppendLine(decrementACode);

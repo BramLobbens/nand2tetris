@@ -3,6 +3,13 @@
 using Modules.CodeWriter.StackArithmetic;
 using Modules.CodeWriter.MemoryAccess;
 
+internal enum Register
+{
+    A,
+    D,
+    M
+}
+
 internal class CodeWriter : ICodeWriter, IDisposable
 {
     private readonly StreamWriter _writer;
