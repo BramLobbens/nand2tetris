@@ -9,6 +9,7 @@ internal class CodeWriter : ICodeWriter, IDisposable
     internal CodeWriter(string filePath)
     {
         _writer = new StreamWriter(filePath);
+        WriteInit();
     }
 
     public void Close() => Dispose();
@@ -20,6 +21,9 @@ internal class CodeWriter : ICodeWriter, IDisposable
         throw new NotImplementedException();
     }
 
+    /// <summary>
+    /// Writes the initialization code for the VM translator, setting the stack pointer to 256.
+    /// </summary>
     public void WriteInit()
     {
         _writer.WriteLine("@256");
@@ -30,7 +34,17 @@ internal class CodeWriter : ICodeWriter, IDisposable
 
     public void WriteArithmetic(string command)
     {
-        _writer.WriteLine(command);
+        var sb = new StringBuilder();
+        if (command == "add")
+        {
+            // We need to pop the last two values from the stack, add them, and push the result back onto the stack
+            sb.AppendLine("@SP"); // Point to the stack pointer
+            sb.AppendLine("AM=M-1"); // SP--; A=SP
+            sb.AppendLine("D=M"); // D now holds the topmost value from the stack
+            sb.AppendLine("A=A-1"); // A now points to the second-to-topmost value on the stack, since SP valuewas kept in A
+            sb.AppendLine("M=M+D"); // Add the topmost value (in D) to the second-to-topmost value (in M) and store the result back in M
+        }
+        _writer.WriteLine(sb);
     }
 
     public void WritePushPop(CommandType commandType, string segment, int index)
@@ -39,16 +53,10 @@ internal class CodeWriter : ICodeWriter, IDisposable
         switch (commandType)
         {
             // Push the value of segment[index] onto the stack
-            // in hack asm, this is a 2-step operation
-
-            // 1. Obtain constant
-            // 2. Find SP
-            // 3. RAM[SP] = 7
-            // 4. SP++
             case CommandType.C_PUSH:
                 if (segment == "constant")
                 {
-                    sb.AppendLine($"@{index}");
+                    sb.AppendLine($"@{index}"); // e.g., @7 for constant 7
                     sb.AppendLine("D=A"); // 1. D=7
 
                     sb.AppendLine("@SP");
@@ -65,7 +73,5 @@ internal class CodeWriter : ICodeWriter, IDisposable
             case CommandType.C_POP:
                 break;
         }
-
-        _writer.WriteLine("Wrote WritePushPop test");
     }
 }
