@@ -13,11 +13,8 @@ internal class Parser : IParser
     internal Parser(IEnumerable<string> lines)
     {
         _enumerator = lines.GetEnumerator();
-
-        if (_enumerator.MoveNext())
-        {
-            _nextLine = _enumerator.Current;
-        }
+        // Provide lookahead for the next command
+        _nextLine = ReadNextCommand();
     }
 
     /// <summary>
@@ -31,20 +28,10 @@ internal class Parser : IParser
             throw new InvalidOperationException("No more commands to advance to.");
         }
 
-        while (_nextLine.StartsWith("//") || string.IsNullOrWhiteSpace(_nextLine))
-        {
-            if (_enumerator.MoveNext())
-            {
-                _nextLine = _enumerator.Current;
-                _currentLine = _nextLine;
-                _currentLineParts = _currentLine.Trim().Split();
-            }
-            else
-            {
-                _nextLine = null;
-                break;
-            }
-        }
+        _currentLine = _nextLine;
+        _currentLineParts = _currentLine.Trim().Split();
+
+        _nextLine = ReadNextCommand();
     }
 
     /// <summary>
@@ -112,5 +99,19 @@ internal class Parser : IParser
     public bool HasMoreCommands()
     {
         return _nextLine is not null;
+    }
+
+    private string? ReadNextCommand()
+    {
+        while (_enumerator.MoveNext())
+        {
+            var line = _enumerator.Current.Trim();
+            if (!string.IsNullOrWhiteSpace(line) && !line.StartsWith("//"))
+            {
+                return line;
+            }
+        }
+
+        return null;
     }
 }
