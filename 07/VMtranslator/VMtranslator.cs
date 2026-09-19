@@ -1,7 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.CommandLine;
+using VMtranslator.Modules.Parser;
+using VMtranslator.Modules.CodeWriter;
 using VMtranslator;
-using VMtranslator.Modules;
 
 var pathArgument = new Argument<string>("path");
 var outputFileOption = new Option<string>(name: "--output", aliases: ["-o"]);
@@ -65,6 +66,7 @@ void ProcessInputFiles(ReadOnlyCollection<FileInfo> inputFiles, FileInfo? output
 
     foreach (var file in inputFiles)
     {
+        codeWriter.SetFileName(file.Name);
         // Instantiate a different parser for each separate VM file.
         var parser = new Parser(File.ReadLines(file.FullName));
         ParseVMFile(parser, codeWriter, file, outputFile);
