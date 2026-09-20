@@ -12,8 +12,8 @@ internal sealed class CodeWriterContext
         VmModuleName = vmFileNameWithoutExtension;
     }
 
-    internal void IncrementLabelCounter()
+    internal string NextLabelId()
     {
-        LabelCounter++;
+        return $"{LabelCounter++}";
     }
 }

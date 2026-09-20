@@ -89,6 +89,7 @@ internal sealed class CodeWriter : ICodeWriter, IDisposable
         @END
         0;JMP      // Infinite loop
     // End of translation
+
     """;
 
     public void WriteArithmetic(string command)
@@ -108,7 +109,6 @@ internal sealed class CodeWriter : ICodeWriter, IDisposable
             _ => throw new InvalidOperationException($"Unknown command: {command}")
         };
 
-        _context.IncrementLabelCounter();
         _writer.WriteLine(assembly);
     }
 

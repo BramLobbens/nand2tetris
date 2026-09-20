@@ -12,27 +12,27 @@ internal sealed class MemoryAccess
 
     internal string PushConstantToStack(int value) =>
     $"""
-        @{value}        // Load the constant value into A
-        D=A             // Store the constant value in D
+        @{value}            // Load constant '{value}' value into A
+        D=A                 // Store '{value}' in D
         @SP
-        A=M             // Point to the top of the stack
-        M=D             // Push the constant value onto the stack
+        A=M                 // Load the top of the stack into A
+        M=D                 // Push '{value}' onto the stack
         @SP
-        M=M+1           // Increment the stack pointer
+        M=M+1               // SP++;
     """;
 
     internal string PopToD() =>
     """
-        @SP             // Point to the stack pointer
-        AM=M-1          // SP--; A=SP
-        D=M             // Store the topmost stack value in D
+        @SP                 // Point to the stack pointer
+        AM=M-1              // SP--; A=SP
+        D=M                 // Store the topmost stack value in D
     """;
 
     internal static string LoadBinaryOperands() =>
     """
-        @SP             // Point to the stack pointer
-        AM=M-1          // SP--; A=SP
-        D=M             // Store the topmost stack value in D
-        A=A-1           // Point to the second-to-topmost value on the stack
+        @SP                 // Point to the stack pointer
+        AM=M-1              // SP--; A=SP
+        D=M                 // Store the topmost stack value in D
+        A=A-1               // Point to the second-to-topmost value on the stack
     """;
 }
