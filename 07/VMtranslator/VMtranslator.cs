@@ -93,10 +93,7 @@ void ParseVMFile(IParser parser, ICodeWriter codeWriter, FileInfo inputFile, Fil
             case CommandType.C_POP:
                 var segment = parser.GetArg1();
                 var success = int.TryParse(parser.GetArg2(), out var index);
-                if (!success)
-                {
-                    throw new InvalidOperationException($"Failed to parse index for segment ['{segment}']");
-                }
+                if (!success) throw new InvalidOperationException($"Failed to parse index for segment ['{segment}']");
                 codeWriter.WritePushPop(commandType, segment, index);
                 break;
             case CommandType.C_LABEL:

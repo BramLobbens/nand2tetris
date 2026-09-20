@@ -21,18 +21,32 @@ internal sealed class MemoryAccess
         M=M+1               // SP++;
     """;
 
-    internal string PopToD() =>
-    """
-        @SP                 // Point to the stack pointer
-        AM=M-1              // SP--; A=SP
-        D=M                 // Store the topmost stack value in D
+    internal string PushVirtualSegmentToStack(string segment, int index) =>
+    $"""
+        @{segment}           // Load base address of segment '{segment}' into A, e.g., LCL for local, ARG for argument
+        D=M                  // Store the base address of segment '{segment}' in D
+        @{index}             // Load the index '{index}' into A
+        D=D+A                // Compute the effective address of segment '{segment}' at index '{index}'
+        @SP
+        M=D                  // Push the effective address onto the stack
     """;
 
-    internal static string LoadBinaryOperands() =>
-    """
-        @SP                 // Point to the stack pointer
+    internal string PopStackToVirtualSegment(string segment, int index) =>
+    $"""
+        @{segment}
+        D=M
+        @{index}
+        D=D+A
+
+        @R13
+        M=D                 // Store the effective address in R13
+
+        @SP
         AM=M-1              // SP--; A=SP
-        D=M                 // Store the topmost stack value in D
-        A=A-1               // Point to the second-to-topmost value on the stack
+        D=M                 // Store the top of the stack in D
+
+        @R13
+        A=M
+        M=D
     """;
 }

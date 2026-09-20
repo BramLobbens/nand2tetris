@@ -3,13 +3,6 @@
 using System.Reflection;
 using VMtranslator.Modules.Interfaces;
 
-internal enum Register
-{
-    A,
-    D,
-    M
-}
-
 internal sealed class CodeWriter : ICodeWriter, IDisposable
 {
     private readonly StreamWriter _writer;
@@ -114,12 +107,14 @@ internal sealed class CodeWriter : ICodeWriter, IDisposable
 
     public void WritePushPop(CommandType commandType, string segment, int index)
     {
-        var assembly = commandType switch
+        var type = (commandType, segment, index);
+        var assembly = type switch
         {
-            CommandType.C_PUSH
-                when segment == "constant" => _memoryAccess.PushConstantToStack(index),
-            CommandType.C_POP
-                when segment == "constant" => throw new NotImplementedException(),
+            (CommandType.C_PUSH, "constant", int value) => _memoryAccess.PushConstantToStack(value),
+            (CommandType.C_PUSH, _, int value) => _memoryAccess.PushVirtualSegmentToStack(MapSegment(segment), value),
+
+            (CommandType.C_POP, "constant", _) => throw new InvalidOperationException("Cannot pop to constant segment"),
+            (CommandType.C_POP, _, int i) => _memoryAccess.PopStackToVirtualSegment(MapSegment(segment), i),
 
             _ => throw new InvalidOperationException($"Unknown command type or segment: {commandType}, {segment}")
         };
@@ -127,4 +122,15 @@ internal sealed class CodeWriter : ICodeWriter, IDisposable
         _writer.WriteLine(assembly);
     }
 
+    private static string MapSegment(string segment) => segment switch
+    {
+        "local" => "LCL",
+        "argument" => "ARG",
+        "this" => "THIS",
+        "that" => "THAT",
+        //"pointer" =>
+        "temp" => "5", // TEMP segment starts at RAM[5]
+        "static" => "16", // STATIC segment starts at RAM[16]
+        _ => throw new InvalidOperationException($"Unknown segment: {segment}")
+    };
 }
