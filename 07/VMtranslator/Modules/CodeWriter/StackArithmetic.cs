@@ -31,7 +31,7 @@ internal sealed class StackArithmetic
     internal string Neg() =>
     """
         @SP
-        AM=M-1
+        A=M-1       // Do not modify the stack pointer
         M=-M
     """;
 
@@ -137,8 +137,7 @@ internal sealed class StackArithmetic
     internal string Not() =>
     """
         @SP
-        AM=M-1
-        A=A-1
+        A=M-1       // Do not modify the stack pointer
         M=!M
     """;
 }
