@@ -17,8 +17,6 @@ internal sealed class StackArithmetic
         D=M
         A=A-1
         M=M+D
-        @END
-        0;JMP
     """;
 
     internal string Sub() =>
@@ -28,8 +26,6 @@ internal sealed class StackArithmetic
         D=M
         A=A-1
         M=M-D
-        @END
-        0;JMP
     """;
 
     internal string Neg() =>
@@ -37,8 +33,6 @@ internal sealed class StackArithmetic
         @SP
         AM=M-1
         M=-M
-        @END
-        0;JMP
     """;
 
     internal string Eq()
@@ -50,15 +44,17 @@ internal sealed class StackArithmetic
             D=M
             A=A-1
             D=M-D
-            @EQ_{_context.VmModuleName}
+            @EQ_TRUE_{_context.VmModuleName}
             D;JEQ
 
-            M=0         // Set false if not equal
-            @END
+            M=0         // False
+            @EQ_END_{_context.VmModuleName}
             0;JMP
 
-        (EQ_{_context.VmModuleName})
-            M=-1        // Set true if equal
+        (EQ_TRUE_{_context.VmModuleName})
+            M=-1        // True
+
+        (EQ_END_{_context.VmModuleName})
         """;
     }
 
@@ -71,15 +67,17 @@ internal sealed class StackArithmetic
             D=M
             A=A-1
             D=M-D
-            @GT_{_context.VmModuleName}
+            @GT_TRUE_{_context.VmModuleName}
             D;JGT
 
-            M=0         // Set false if not equal
-            @END
+            M=0         // False
+            @GT_END_{_context.VmModuleName}
             0;JMP
 
-        (GT_{_context.VmModuleName})
-            M=-1        // Set true if equal
+        (GT_TRUE_{_context.VmModuleName})
+            M=-1        // True
+
+        (GT_END_{_context.VmModuleName})
         """;
     }
 
@@ -92,15 +90,17 @@ internal sealed class StackArithmetic
             D=M
             A=A-1
             D=M-D
-            @LT_{_context.VmModuleName}
+            @LT_TRUE_{_context.VmModuleName}
             D;JLT
 
-            M=0         // Set false if not equal
-            @END
+            M=0         // False
+            @LT_END_{_context.VmModuleName}
             0;JMP
 
-        (LT_{_context.VmModuleName})
-            M=-1        // Set true if equal
+        (LT_TRUE_{_context.VmModuleName})
+            M=-1        // True
+
+        (LT_END_{_context.VmModuleName})
         """;
     }
 
@@ -111,8 +111,6 @@ internal sealed class StackArithmetic
         D=M
         A=A-1
         M=M&D
-        @END
-        0;JMP
     """;
 
     internal string Or() =>
@@ -122,8 +120,6 @@ internal sealed class StackArithmetic
         D=M
         A=A-1
         M=M|D
-        @END
-        0;JMP
     """;
 
     internal string Not() =>
@@ -132,7 +128,5 @@ internal sealed class StackArithmetic
         AM=M-1
         A=A-1
         M=!M
-        @END
-        0;JMP
     """;
 }

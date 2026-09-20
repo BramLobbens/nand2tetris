@@ -67,6 +67,8 @@ internal sealed class CodeWriter : ICodeWriter, IDisposable
 
     private static string FinalizationCode() =>
     """
+        @END
+        0;JMP
     (END)
         @END
         0;JMP      // Infinite loop
