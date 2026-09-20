@@ -3,6 +3,7 @@ using System.CommandLine;
 using VMtranslator.Modules.Parser;
 using VMtranslator.Modules.CodeWriter;
 using VMtranslator;
+using VMtranslator.Modules.Interfaces;
 
 var pathArgument = new Argument<string>("path");
 var outputFileOption = new Option<string>(name: "--output", aliases: ["-o"]);
@@ -71,6 +72,8 @@ void ProcessInputFiles(ReadOnlyCollection<FileInfo> inputFiles, FileInfo? output
         var parser = new Parser(File.ReadLines(file.FullName));
         ParseVMFile(parser, codeWriter, file, outputFile);
     }
+
+    codeWriter.Close();
 }
 
 void ParseVMFile(IParser parser, ICodeWriter codeWriter, FileInfo inputFile, FileInfo? outputFile)

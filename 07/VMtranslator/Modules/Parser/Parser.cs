@@ -1,5 +1,7 @@
 ﻿namespace VMtranslator.Modules.Parser;
 
+using VMtranslator.Modules.Interfaces;
+
 internal class Parser : IParser
 {
     private readonly IEnumerator<string> _enumerator;

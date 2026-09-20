@@ -17,6 +17,8 @@ internal sealed class StackArithmetic
         D=M
         A=A-1
         M=M+D
+        @END
+        0;JMP
     """;
 
     internal string Sub() =>
@@ -26,6 +28,8 @@ internal sealed class StackArithmetic
         D=M
         A=A-1
         M=M-D
+        @END
+        0;JMP
     """;
 
     internal string Neg() =>
@@ -33,6 +37,8 @@ internal sealed class StackArithmetic
         @SP
         AM=M-1
         M=-M
+        @END
+        0;JMP
     """;
 
     internal string Eq()
@@ -48,6 +54,8 @@ internal sealed class StackArithmetic
             D;JEQ
 
             M=0         // Set false if not equal
+            @END
+            0;JMP
 
         (EQ_{_context.VmFileName})
             M=-1        // Set true if equal
@@ -78,6 +86,8 @@ internal sealed class StackArithmetic
         D=M
         A=A-1
         M=M&D
+        @END
+        0;JMP
     """;
 
     internal string Or() =>
@@ -87,6 +97,8 @@ internal sealed class StackArithmetic
         D=M
         A=A-1
         M=M|D
+        @END
+        0;JMP
     """;
 
     internal string Not() =>
@@ -95,5 +107,7 @@ internal sealed class StackArithmetic
         AM=M-1
         A=A-1
         M=!M
+        @END
+        0;JMP
     """;
 }

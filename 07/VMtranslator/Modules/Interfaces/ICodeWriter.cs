@@ -1,4 +1,4 @@
-﻿namespace VMtranslator.Modules.CodeWriter;
+﻿namespace VMtranslator.Modules.Interfaces;
 
 internal interface ICodeWriter
 {

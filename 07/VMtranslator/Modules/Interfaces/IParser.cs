@@ -1,4 +1,4 @@
-﻿namespace VMtranslator.Modules.Parser;
+﻿namespace VMtranslator.Modules.Interfaces;
 
 internal interface IParser
 {

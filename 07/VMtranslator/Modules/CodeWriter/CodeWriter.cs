@@ -1,5 +1,7 @@
 ﻿namespace VMtranslator.Modules.CodeWriter;
 
+using VMtranslator.Modules.Interfaces;
+
 internal enum Register
 {
     A,
@@ -27,7 +29,11 @@ internal sealed class CodeWriter : ICodeWriter, IDisposable
         WriteInit();
     }
 
-    public void Close() => Dispose();
+    public void Close()
+    {
+        _writer.WriteLine(FinalizationCode());
+        Dispose();
+    }
 
     public void Dispose() => _writer.Dispose();
 
@@ -44,9 +50,14 @@ internal sealed class CodeWriter : ICodeWriter, IDisposable
     /// <summary>
     /// Writes the initialization code for the VM translator, setting the stack pointer to 256.
     /// </summary>
-    public void WriteInit()
+    private void WriteInit()
     {
         _writer.WriteLine(InitializationCode());
+    }
+
+    public void WriteEnd()
+    {
+        _writer.WriteLine(FinalizationCode());
     }
 
     private static string InitializationCode() =>
@@ -57,6 +68,14 @@ internal sealed class CodeWriter : ICodeWriter, IDisposable
         @SP
         M=D
     // End of initialization
+    """;
+
+    private static string FinalizationCode() =>
+    """
+    (END)
+        @END
+        0;JMP      // Infinite loop
+    // End of translation
     """;
 
     public void WriteArithmetic(string command)
