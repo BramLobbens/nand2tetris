@@ -1,0 +1,32 @@
+// Initialize stack pointer to 256
+    @256
+    D=A
+    @SP
+    M=D
+// End of initialization
+// File: SimpleAdd.vm
+    @7        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @8        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @SP
+    AM=M-1
+    D=M
+    A=A-1
+    M=M+D
+    @END
+    0;JMP
+(END)
+    @END
+    0;JMP      // Infinite loop
+// End of translation

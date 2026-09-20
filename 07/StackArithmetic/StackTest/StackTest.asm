@@ -1,0 +1,381 @@
+// Initialize stack pointer to 256
+    @256
+    D=A
+    @SP
+    M=D
+// End of initialization
+// File: StackTest.vm
+    @17        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @17        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @SP
+    AM=M-1
+    D=M
+    A=A-1
+    D=M-D
+    @EQ_TRUE_0
+    D;JEQ
+
+    @SP
+    A=M-1
+    M=0         // False
+    @EQ_END_0
+    0;JMP
+
+(EQ_TRUE_0)
+    @SP
+    A=M-1
+    M=-1        // True
+
+(EQ_END_0)
+    @17        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @16        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @SP
+    AM=M-1
+    D=M
+    A=A-1
+    D=M-D
+    @EQ_TRUE_1
+    D;JEQ
+
+    @SP
+    A=M-1
+    M=0         // False
+    @EQ_END_1
+    0;JMP
+
+(EQ_TRUE_1)
+    @SP
+    A=M-1
+    M=-1        // True
+
+(EQ_END_1)
+    @16        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @17        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @SP
+    AM=M-1
+    D=M
+    A=A-1
+    D=M-D
+    @EQ_TRUE_2
+    D;JEQ
+
+    @SP
+    A=M-1
+    M=0         // False
+    @EQ_END_2
+    0;JMP
+
+(EQ_TRUE_2)
+    @SP
+    A=M-1
+    M=-1        // True
+
+(EQ_END_2)
+    @892        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @891        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @SP
+    AM=M-1
+    D=M
+    A=A-1
+    D=M-D
+    @LT_TRUE_3
+    D;JLT
+
+    @SP
+    A=M-1
+    M=0         // False
+    @LT_END_3
+    0;JMP
+
+(LT_TRUE_3)
+    @SP
+    A=M-1
+    M=-1        // True
+
+(LT_END_3)
+    @891        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @892        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @SP
+    AM=M-1
+    D=M
+    A=A-1
+    D=M-D
+    @LT_TRUE_4
+    D;JLT
+
+    @SP
+    A=M-1
+    M=0         // False
+    @LT_END_4
+    0;JMP
+
+(LT_TRUE_4)
+    @SP
+    A=M-1
+    M=-1        // True
+
+(LT_END_4)
+    @891        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @891        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @SP
+    AM=M-1
+    D=M
+    A=A-1
+    D=M-D
+    @LT_TRUE_5
+    D;JLT
+
+    @SP
+    A=M-1
+    M=0         // False
+    @LT_END_5
+    0;JMP
+
+(LT_TRUE_5)
+    @SP
+    A=M-1
+    M=-1        // True
+
+(LT_END_5)
+    @32767        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @32766        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @SP
+    AM=M-1
+    D=M
+    A=A-1
+    D=M-D
+    @GT_TRUE_6
+    D;JGT
+
+    @SP
+    A=M-1
+    M=0         // False
+    @GT_END_6
+    0;JMP
+
+(GT_TRUE_6)
+    @SP
+    A=M-1
+    M=-1        // True
+
+(GT_END_6)
+    @32766        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @32767        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @SP
+    AM=M-1
+    D=M
+    A=A-1
+    D=M-D
+    @GT_TRUE_7
+    D;JGT
+
+    @SP
+    A=M-1
+    M=0         // False
+    @GT_END_7
+    0;JMP
+
+(GT_TRUE_7)
+    @SP
+    A=M-1
+    M=-1        // True
+
+(GT_END_7)
+    @32766        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @32766        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @SP
+    AM=M-1
+    D=M
+    A=A-1
+    D=M-D
+    @GT_TRUE_8
+    D;JGT
+
+    @SP
+    A=M-1
+    M=0         // False
+    @GT_END_8
+    0;JMP
+
+(GT_TRUE_8)
+    @SP
+    A=M-1
+    M=-1        // True
+
+(GT_END_8)
+    @57        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @31        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @53        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @SP
+    AM=M-1
+    D=M
+    A=A-1
+    M=M+D
+    @112        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @SP
+    AM=M-1
+    D=M
+    A=A-1
+    M=M-D
+    @SP
+    AM=M-1
+    M=-M
+    @SP
+    AM=M-1
+    D=M
+    A=A-1
+    M=M&D
+    @82        // Load the constant value into A
+    D=A             // Store the constant value in D
+    @SP
+    A=M             // Point to the top of the stack
+    M=D             // Push the constant value onto the stack
+    @SP
+    M=M+1           // Increment the stack pointer
+    @SP
+    AM=M-1
+    D=M
+    A=A-1
+    M=M|D
+    @SP
+    AM=M-1
+    A=A-1
+    M=!M
+    @END
+    0;JMP
+(END)
+    @END
+    0;JMP      // Infinite loop
+// End of translation

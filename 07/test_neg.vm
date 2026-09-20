@@ -1,3 +1,0 @@
-// Pushes a constant and negates it.
-push constant 5
-neg
