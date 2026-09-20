@@ -1,8 +1,5 @@
 ﻿namespace VMtranslator.Modules.CodeWriter;
 
-using Modules.CodeWriter.StackArithmetic;
-using Modules.CodeWriter.MemoryAccess;
-
 internal enum Register
 {
     A,
@@ -10,12 +7,22 @@ internal enum Register
     M
 }
 
-internal class CodeWriter : ICodeWriter, IDisposable
+internal sealed class CodeWriter : ICodeWriter, IDisposable
 {
     private readonly StreamWriter _writer;
 
+    private readonly CodeWriterContext _context;
+
+    private readonly StackArithmetic _stackArithmetic;
+
+    private readonly MemoryAccess _memoryAccess;
+
+
     internal CodeWriter(string filePath)
     {
+        _context = new CodeWriterContext();
+        _stackArithmetic = new StackArithmetic(_context);
+        _memoryAccess = new MemoryAccess(_context);
         _writer = new StreamWriter(filePath);
         WriteInit();
     }
@@ -30,7 +37,8 @@ internal class CodeWriter : ICodeWriter, IDisposable
     /// <param name="fileName">The name of the VM file being translated.</param>
     public void SetFileName(string fileName)
     {
-        _writer.WriteLine($"// File: {fileName}");
+        _context.SetVmFileName(fileName);
+        _writer.WriteLine($"// File: {_context.VmFileName}");
     }
 
     /// <summary>
@@ -55,15 +63,15 @@ internal class CodeWriter : ICodeWriter, IDisposable
     {
         string assembly = command switch
         {
-            "add" => ArithmeticCommandBuilder.Add(),
-            "sub" => ArithmeticCommandBuilder.Sub(),
-            "neg" => ArithmeticCommandBuilder.Neg(),
-            "eq" => ArithmeticCommandBuilder.Eq(),
-            "gt" => ArithmeticCommandBuilder.Gt(),
-            "lt" => ArithmeticCommandBuilder.Lt(),
-            "and" => ArithmeticCommandBuilder.And(),
-            "or" => ArithmeticCommandBuilder.Or(),
-            "not" => ArithmeticCommandBuilder.Not(),
+            "add" => _stackArithmetic.Add(),
+            "sub" => _stackArithmetic.Sub(),
+            "neg" => _stackArithmetic.Neg(),
+            "eq" => _stackArithmetic.Eq(),
+            "gt" => _stackArithmetic.Gt(),
+            "lt" => _stackArithmetic.Lt(),
+            "and" => _stackArithmetic.And(),
+            "or" => _stackArithmetic.Or(),
+            "not" => _stackArithmetic.Not(),
 
             _ => throw new InvalidOperationException($"Unknown command: {command}")
         };
@@ -76,7 +84,7 @@ internal class CodeWriter : ICodeWriter, IDisposable
         var assembly = commandType switch
         {
             CommandType.C_PUSH
-                when segment == "constant" => MemoryAccessAssembler.PushConstantToStack(index),
+                when segment == "constant" => _memoryAccess.PushConstantToStack(index),
             CommandType.C_POP
                 when segment == "constant" => throw new NotImplementedException(),
 
