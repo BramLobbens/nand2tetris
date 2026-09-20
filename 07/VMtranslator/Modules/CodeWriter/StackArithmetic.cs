@@ -44,17 +44,21 @@ internal sealed class StackArithmetic
             D=M
             A=A-1
             D=M-D
-            @EQ_TRUE_{_context.VmModuleName}
+            @EQ_TRUE_{_context.LabelCounter}
             D;JEQ
 
+            @SP
+            A=M-1
             M=0         // False
-            @EQ_END_{_context.VmModuleName}
+            @EQ_END_{_context.LabelCounter}
             0;JMP
 
-        (EQ_TRUE_{_context.VmModuleName})
+        (EQ_TRUE_{_context.LabelCounter})
+            @SP
+            A=M-1
             M=-1        // True
 
-        (EQ_END_{_context.VmModuleName})
+        (EQ_END_{_context.LabelCounter})
         """;
     }
 
@@ -67,17 +71,21 @@ internal sealed class StackArithmetic
             D=M
             A=A-1
             D=M-D
-            @GT_TRUE_{_context.VmModuleName}
+            @GT_TRUE_{_context.LabelCounter}
             D;JGT
 
+            @SP
+            A=M-1
             M=0         // False
-            @GT_END_{_context.VmModuleName}
+            @GT_END_{_context.LabelCounter}
             0;JMP
 
-        (GT_TRUE_{_context.VmModuleName})
+        (GT_TRUE_{_context.LabelCounter})
+            @SP
+            A=M-1
             M=-1        // True
 
-        (GT_END_{_context.VmModuleName})
+        (GT_END_{_context.LabelCounter})
         """;
     }
 
@@ -90,17 +98,21 @@ internal sealed class StackArithmetic
             D=M
             A=A-1
             D=M-D
-            @LT_TRUE_{_context.VmModuleName}
+            @LT_TRUE_{_context.LabelCounter}
             D;JLT
 
+            @SP
+            A=M-1
             M=0         // False
-            @LT_END_{_context.VmModuleName}
+            @LT_END_{_context.LabelCounter}
             0;JMP
 
-        (LT_TRUE_{_context.VmModuleName})
+        (LT_TRUE_{_context.LabelCounter})
+            @SP
+            A=M-1
             M=-1        // True
 
-        (LT_END_{_context.VmModuleName})
+        (LT_END_{_context.LabelCounter})
         """;
     }
 

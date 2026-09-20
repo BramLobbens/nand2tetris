@@ -58,15 +58,18 @@ internal sealed class CodeWriter : ICodeWriter, IDisposable
     private static string InitializationCode() =>
     """
     // Initialize stack pointer to 256
+
         @256
         D=A
         @SP
         M=D
+
     // End of initialization
     """;
 
     private static string FinalizationCode() =>
     """
+
         @END
         0;JMP
     (END)
@@ -92,6 +95,7 @@ internal sealed class CodeWriter : ICodeWriter, IDisposable
             _ => throw new InvalidOperationException($"Unknown command: {command}")
         };
 
+        _context.IncrementLabelCounter();
         _writer.WriteLine(assembly);
     }
 
