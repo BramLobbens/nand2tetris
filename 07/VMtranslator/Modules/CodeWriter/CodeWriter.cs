@@ -107,14 +107,13 @@ internal sealed class CodeWriter : ICodeWriter, IDisposable
 
     public void WritePushPop(CommandType commandType, string segment, int index)
     {
-        var type = (commandType, segment, index);
-        var assembly = type switch
+        var assembly = (commandType, segment, index) switch
         {
             (CommandType.C_PUSH, "constant", int value) => _memoryAccess.PushConstantToStack(value),
             (CommandType.C_PUSH, _, int value) => _memoryAccess.PushVirtualSegmentToStack(MapSegment(segment), value),
 
             (CommandType.C_POP, "constant", _) => throw new InvalidOperationException("Cannot pop to constant segment"),
-            (CommandType.C_POP, _, int i) => _memoryAccess.PopStackToVirtualSegment(MapSegment(segment), i),
+            (CommandType.C_POP, _, int value) => _memoryAccess.PopStackToVirtualSegment(MapSegment(segment), value),
 
             _ => throw new InvalidOperationException($"Unknown command type or segment: {commandType}, {segment}")
         };
