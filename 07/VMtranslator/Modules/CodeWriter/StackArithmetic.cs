@@ -50,33 +50,58 @@ internal sealed class StackArithmetic
             D=M
             A=A-1
             D=M-D
-            @EQ_{_context.VmFileName}
+            @EQ_{_context.VmModuleName}
             D;JEQ
 
             M=0         // Set false if not equal
             @END
             0;JMP
 
-        (EQ_{_context.VmFileName})
+        (EQ_{_context.VmModuleName})
             M=-1        // Set true if equal
         """;
-        // sb.AppendLine("(EQ_TRUE)");
-        // sb.AppendLine("");
-        // sb.PopStackValue();
-        // //sb.AppendLine("A=A-1");
-
-        // sb.AppendLine($"@EQ_TRUE");
-        // sb.AppendLine("D;JEQ");
     }
 
     internal string Gt()
     {
-        throw new NotImplementedException();
+        return
+        $"""
+            @SP
+            AM=M-1
+            D=M
+            A=A-1
+            D=M-D
+            @GT_{_context.VmModuleName}
+            D;JGT
+
+            M=0         // Set false if not equal
+            @END
+            0;JMP
+
+        (GT_{_context.VmModuleName})
+            M=-1        // Set true if equal
+        """;
     }
 
     internal string Lt()
     {
-        throw new NotImplementedException();
+        return
+        $"""
+            @SP
+            AM=M-1
+            D=M
+            A=A-1
+            D=M-D
+            @LT_{_context.VmModuleName}
+            D;JLT
+
+            M=0         // Set false if not equal
+            @END
+            0;JMP
+
+        (LT_{_context.VmModuleName})
+            M=-1        // Set true if equal
+        """;
     }
 
     internal string And() =>

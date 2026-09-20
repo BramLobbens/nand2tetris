@@ -43,8 +43,8 @@ internal sealed class CodeWriter : ICodeWriter, IDisposable
     /// <param name="fileName">The name of the VM file being translated.</param>
     public void SetFileName(string fileName)
     {
-        _context.SetVmFileName(fileName);
-        _writer.WriteLine($"// File: {_context.VmFileName}");
+        _context.SetVmModuleName(Path.GetFileNameWithoutExtension(fileName));
+        _writer.WriteLine($"// File: {fileName}");
     }
 
     /// <summary>
@@ -53,11 +53,6 @@ internal sealed class CodeWriter : ICodeWriter, IDisposable
     private void WriteInit()
     {
         _writer.WriteLine(InitializationCode());
-    }
-
-    public void WriteEnd()
-    {
-        _writer.WriteLine(FinalizationCode());
     }
 
     private static string InitializationCode() =>

@@ -2,11 +2,11 @@ namespace VMtranslator.Modules.CodeWriter;
 
 internal sealed class CodeWriterContext
 {
-    internal string VmFileName { get; private set; } = string.Empty;
+    internal string VmModuleName { get; private set; } = string.Empty;
 
-    internal void SetVmFileName(string vmFileName)
+    internal void SetVmModuleName(string vmFileNameWithoutExtension)
     {
-        ArgumentNullException.ThrowIfNull(vmFileName);
-        VmFileName = vmFileName;
+        ArgumentNullException.ThrowIfNull(vmFileNameWithoutExtension);
+        VmModuleName = vmFileNameWithoutExtension;
     }
 }
