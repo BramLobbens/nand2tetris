@@ -24,22 +24,29 @@ internal sealed class MemoryAccess
     internal string PushVirtualSegmentToStack(string segment, int index) =>
     $"""
         @{segment}           // Load base address of segment '{segment}' into A, e.g., LCL for local, ARG for argument
-        D=M                  // Store the base address of segment '{segment}' in D
+        D=A                  // Store the base address of segment '{segment}' in D
         @{index}             // Load the index '{index}' into A
-        D=D+A                // Compute the effective address of segment '{segment}' at index '{index}'
+        A=D+A                // Compute the effective address of segment '{segment}' at index '{index}'
+
+        D=M                  // Store the value at the effective address in D
+
         @SP
-        M=D                  // Push the effective address onto the stack
+        A=M                  // A=SP; Load the address of the top of the stack into A
+        M=D                  // Push the value onto the stack
+
+        @SP
+        M=M+1               // SP++;
     """;
 
     internal string PopStackToVirtualSegment(string segment, int index) =>
     $"""
         @{segment}
-        D=M
+        D=A
         @{index}
-        D=D+A
+        D=D+A               // Compute the effective address of segment '{segment}' at index '{index}'
 
         @R13
-        M=D                 // Store the effective address in R13
+        M=D                 // Store the effective address in R13 (temporary register)
 
         @SP
         AM=M-1              // SP--; A=SP
