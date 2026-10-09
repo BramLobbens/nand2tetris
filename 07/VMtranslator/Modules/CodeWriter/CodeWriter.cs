@@ -110,9 +110,11 @@ internal sealed class CodeWriter : ICodeWriter, IDisposable
         var assembly = (commandType, segment, index) switch
         {
             (CommandType.C_PUSH, "constant", int value) => _memoryAccess.PushConstantToStack(value),
+            (CommandType.C_PUSH, "this" or "that", int value) => _memoryAccess.PushPointerValueToStack(MapSegment(segment), value),
             (CommandType.C_PUSH, _, int value) => _memoryAccess.PushVirtualSegmentToStack(MapSegment(segment), value),
 
             (CommandType.C_POP, "constant", _) => throw new InvalidOperationException("Cannot pop to constant segment"),
+            (CommandType.C_POP, "this" or "that", int value) => _memoryAccess.PopStackToPointerAddress(MapSegment(segment), value),
             (CommandType.C_POP, _, int value) => _memoryAccess.PopStackToVirtualSegment(MapSegment(segment), value),
 
             _ => throw new InvalidOperationException($"Unknown command type or segment: {commandType}, {segment}")
@@ -127,7 +129,7 @@ internal sealed class CodeWriter : ICodeWriter, IDisposable
         "argument" => "ARG",
         "this" => "THIS",
         "that" => "THAT",
-        //"pointer" =>
+        "pointer" => "3", // pointer is not a segment of itself, it refers to RAM[3] and RAM[4] for THIS and THAT
         "temp" => "5", // TEMP segment starts at RAM[5]
         "static" => "16", // STATIC segment starts at RAM[16]
         _ => throw new InvalidOperationException($"Unknown segment: {segment}")
